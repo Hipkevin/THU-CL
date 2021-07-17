@@ -32,6 +32,9 @@ def getData(path):
         sentence = t['句子']
         original_factor = t["要素原始值"]
 
+        if sentence not in t["段落内容"]:
+            continue
+
         for defendant in defendantSet:
             sample.append([sentence, defendant, original_factor])
 
@@ -97,6 +100,7 @@ class SeqClsDataSet(Dataset):
 
             seq = CLS + data[1] + data[2] + SEP + data[0] + SEP
             seq_token = self.tokenizer.tokenize(seq)
+            # seq_token = get_new_segment(seq_token)
 
             if len(seq_token) > config.pad_size:
                 seq_token = seq_token[:config.pad_size]
@@ -106,7 +110,7 @@ class SeqClsDataSet(Dataset):
             seq_id = self.tokenizer.convert_tokens_to_ids(seq_token)
 
             X.append(seq_id)
-            Y.append(torch.tensor(l))
+            Y.append([l])
 
         self.X = torch.tensor(X, dtype=torch.long)
         self.Y = torch.tensor(Y, dtype=torch.float32)

@@ -6,9 +6,12 @@ def train(model, loader, criterion, optimizer, config):
     for epoch in range(config.epoch_size):
 
         for idx, (X, Y) in enumerate(loader):
-            predict = model(X).squeeze()
-            loss = criterion(Y, predict)
-
+            X = X.to(config.device)
+            Y = Y.to(config.device)
+            
+            predict = model(X)
+            loss = criterion(predict, Y)
+            
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -18,18 +21,21 @@ def train(model, loader, criterion, optimizer, config):
 
     return model
 
-def evaluate(model, loader):
+def evaluate(model, loader, config):
     model.eval()
 
     y = list()
     y_pre = list()
     for idx, (X, Y) in tqdm(enumerate(loader)):
-        y_pre += model(X).squeeze().tolist()
-        y += Y.tolist()
+        X = X.to(config.device)
+        Y = Y.to(config.device)
+        
+        y_pre += model(X).squeeze().cpu().tolist()
+        y += Y.cpu().tolist()
 
     y_hat = list()
     for pre in y_pre:
-        if pre > 0:
+        if pre > 0.5:
             y_hat.append(1)
         else:
             y_hat.append(0)
